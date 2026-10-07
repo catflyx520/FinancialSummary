@@ -1,0 +1,162 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isOwner(uid) {
+      return request.auth != null
+        && request.auth.uid == uid
+        && get(/databases/$(database)/documents/config/access).data.ownerUid == request.auth.uid;
+    }
+
+    function validId(value, documentId) {
+      return value is string
+        && value == documentId
+        && value.trim().size() > 0
+        && value == value.trim()
+        && !value.matches('.*[/].*')
+        && value.size() <= 128;
+    }
+
+    function validOptionalId(value) {
+      return value is string
+        && value.size() <= 128
+        && value == value.trim()
+        && !value.matches('.*[/].*')
+        && (value.size() == 0 || value.trim().size() > 0);
+    }
+
+    function validText(value, maximum) {
+      return value is string && value.size() <= maximum;
+    }
+
+    function validRequiredText(value, maximum) {
+      return validText(value, maximum) && value.trim().size() > 0;
+    }
+
+    function validCalendarDate(value) {
+      let parsed = timestamp.date(
+        int(value[0:4]),
+        int(value[5:7]),
+        int(value[8:10])
+      );
+      return parsed.year() == int(value[0:4])
+        && parsed.month() == int(value[5:7])
+        && parsed.day() == int(value[8:10]);
+    }
+
+    function validDate(value) {
+      return value is string
+        && value.matches('^[0-9]{4}-(0[1-9]|1[0-2])-([0-2][0-9]|3[01])$')
+        && validCalendarDate(value);
+    }
+
+    function validTimestamp(value) {
+      return value is string
+        && value.matches('^[0-9]{4}-(0[1-9]|1[0-2])-([0-2][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9][.][0-9]{3}Z$')
+        && validDate(value[0:10]);
+    }
+
+    function validTransaction(data, documentId) {
+      return data.keys().hasOnly([
+          'id', 'date', 'merchant', 'amountCents', 'type', 'category',
+          'accountId', 'note', 'source', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasAll([
+          'id', 'date', 'merchant', 'amountCents', 'type', 'category',
+          'accountId', 'note', 'source', 'createdAt', 'updatedAt'
+        ])
+        && validId(data.id, documentId)
+        && validDate(data.date)
+        && validRequiredText(data.merchant, 120)
+        && data.amountCents is int
+        && data.amountCents > 0
+        && data.amountCents <= 100000000000
+        && data.type in ['income', 'expense', 'refund', 'transfer']
+        && validRequiredText(data.category, 80)
+        && validOptionalId(data.accountId)
+        && validText(data.note, 500)
+        && data.source in ['manual', 'csv', 'recurring', 'pdf']
+        && validTimestamp(data.createdAt)
+        && validTimestamp(data.updatedAt);
+    }
+
+    function validAccount(data, documentId) {
+      return data.keys().hasOnly([
+          'id', 'name', 'type', 'balanceCents', 'currency', 'updatedAt'
+        ])
+        && data.keys().hasAll([
+          'id', 'name', 'type', 'balanceCents', 'currency', 'updatedAt'
+        ])
+        && validId(data.id, documentId)
+        && validRequiredText(data.name, 120)
+        && data.type in [
+          'checking', 'savings', 'credit', 'investment', 'retirement',
+          'loan', 'other'
+        ]
+        && data.balanceCents is int
+        && data.balanceCents >= 0
+        && data.balanceCents <= 100000000000
+        && data.currency == 'USD'
+        && validTimestamp(data.updatedAt);
+    }
+
+    function validRecurringPayment(data, documentId) {
+      return data.keys().hasOnly([
+          'id', 'name', 'category', 'amountCents', 'frequency',
+          'nextDueDate', 'accountId', 'autoPay', 'active', 'createdAt',
+          'updatedAt', 'endDate', 'type', 'autoPost', 'lastPostedDate'
+        ])
+        && data.keys().hasAll([
+          'id', 'name', 'category', 'amountCents', 'frequency',
+          'nextDueDate', 'accountId', 'autoPay', 'active', 'createdAt',
+          'updatedAt'
+        ])
+        && validId(data.id, documentId)
+        && validRequiredText(data.name, 120)
+        && validRequiredText(data.category, 80)
+        && data.amountCents is int
+        && data.amountCents > 0
+        && data.amountCents <= 100000000000
+        && data.frequency in ['weekly', 'monthly', 'quarterly', 'yearly']
+        && validDate(data.nextDueDate)
+        && (!('type' in data) || data.type in ['income', 'expense'])
+        && (!('autoPost' in data) || (data.autoPost is bool
+          && (!data.autoPost || data.type == 'income'
+            || (data.type == 'expense' && data.accountId.size() > 0))))
+        && (!('lastPostedDate' in data) || validDate(data.lastPostedDate))
+        && (!('endDate' in data) || data.endDate == ''
+          || (validDate(data.endDate) && data.endDate >= data.nextDueDate))
+        && validOptionalId(data.accountId)
+        && data.autoPay is bool
+        && data.active is bool
+        && validTimestamp(data.createdAt)
+        && validTimestamp(data.updatedAt);
+    }
+
+    match /config/{document=**} {
+      allow read, write: if false;
+    }
+
+    match /users/{uid}/transactions/{documentId} {
+      allow read, delete: if isOwner(uid);
+      allow create, update: if isOwner(uid)
+        && validTransaction(request.resource.data, documentId);
+    }
+
+    match /users/{uid}/accounts/{documentId} {
+      allow read, delete: if isOwner(uid);
+      allow create, update: if isOwner(uid)
+        && validAccount(request.resource.data, documentId);
+    }
+
+    match /users/{uid}/recurring_payments/{documentId} {
+      allow read, delete: if isOwner(uid);
+      allow create, update: if isOwner(uid)
+        && validRecurringPayment(request.resource.data, documentId);
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

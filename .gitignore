@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Local previews, imported statements, and financial exports
+/artifacts/
+/statements/
+/imports/
+/backups/
+*.pdf
+*.csv
+*.xlsx
+*.xls
+
+# Credentials and local tool state
+*.pem
+*.key
+*service-account*.json
+*serviceAccount*.json
+.firebase/
+.claude/
+
+# Logs and editor files
+*.log
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
