@@ -17,10 +17,12 @@
 
 ## 本地运行
 
-要求 Node.js 20.19+（当前环境为 20.20.2）。
+使用 Node.js 24。**本地账本和演示模式不需要 Firebase，也不需要任何 API key。**
 
 ```sh
-npm install
+git clone https://github.com/catflyx520/FinancialSummary.git
+cd FinancialSummary
+npm ci
 npm run dev
 ```
 
@@ -28,7 +30,13 @@ npm run dev
 
 ## 接入 Firebase
 
-具体步骤见 [FIREBASE_SETUP.md](./FIREBASE_SETUP.md)。前端只需公开的 Web 应用配置，填入 `.env.local`：
+需要 Google 登录和云端账本时，再配置 Firebase。先在项目根目录复制模板：
+
+```powershell
+Copy-Item .env.example .env.local
+```
+
+macOS/Linux 使用 `cp .env.example .env.local`。打开 Firebase Console → 项目设置 → 你的应用，选择或创建 Web 应用，将其配置填入项目根目录的 `.env.local`：
 
 ```dotenv
 VITE_FIREBASE_API_KEY=
@@ -37,9 +45,29 @@ VITE_FIREBASE_PROJECT_ID=
 VITE_FIREBASE_APP_ID=
 ```
 
-另需开启 Google 登录、创建 Firestore 数据库，在受保护的 `config/access` 文档中设置自己的 `ownerUid`，并发布本项目的 `firestore.rules`。修改环境变量后重启开发服务器。
+这四项为必填配置，值分别对应 Web 配置的 `apiKey`、`authDomain`、`projectId`、`appId`。模板中的 `VITE_FIREBASE_STORAGE_BUCKET` 和 `VITE_FIREBASE_MESSAGING_SENDER_ID` 为可选项。这里不需要 Claude 或 OpenAI key。
 
-当前功能不依赖 Firebase Storage。**不要把服务账号 JSON、Admin SDK 私钥或第三方私钥放进前端。** `.env.local` 已加入忽略列表。Firestore rules must be deployed separately for the Firebase project you configure.
+还需要完成以下步骤，云端账本才能正常读写：
+
+1. 在 Firebase Authentication 中开启 Google 登录，并添加实际使用的开发/部署域名。
+2. 创建 Firestore 数据库。
+3. 登录应用后获取自己的 Authentication UID，在 Firestore 的 `config` 集合创建 `access` 文档，添加字符串字段 `ownerUid`，值为该 UID。
+4. 在项目根目录部署访问规则：
+
+```sh
+npx firebase login
+npx firebase deploy --only firestore:rules --project YOUR_PROJECT_ID
+```
+
+将 `YOUR_PROJECT_ID` 换成自己的 Firebase 项目 ID。完整说明见 [FIREBASE_SETUP.md](./FIREBASE_SETUP.md)。修改 `.env.local` 后重启 `npm run dev`；构建后的版本需要重新执行 `npm run build`。
+
+Firebase Web 配置会进入前端构建产物，数据访问由 Authentication 和 Firestore rules 控制。**不要把服务账号 JSON、Admin SDK 私钥或第三方私钥放进前端。** `.env.local` 已加入 Git 忽略列表，仓库仅保存空白 `.env.example`。当前功能不依赖 Firebase Storage。
+
+## 常见问题
+
+- 仍然显示未配置 Firebase：检查文件是否位于项目根目录、是否名为 `.env.local`，并确认上面四项都已填写，然后重启。
+- 能登录但读写失败：检查 `ownerUid` 是否等于当前登录用户的 UID，以及 rules 是否部署到了同一个 Firebase 项目。
+- 换浏览器后本地账本不见了：本地数据属于原浏览器，不会自动上传或同步到云端；演示数据也不会保存到真实账本。
 
 ## 验证命令
 
@@ -50,7 +78,7 @@ npm run lint
 npm run test:rules # 使用本地 Firestore 模拟器，需要 Java 21+
 ```
 
-## 下一阶段
+## PDF 导入与当前限制
 
 Chase 文字型信用卡 PDF 导入已实现：收支明细 → 导入 Chase PDF → 选择信用卡账户 → 核对并修正 → 确认导入。可编辑日期、名称、类型、分类、金额并排除交易；已导入记录跳过，疑似手动重复默认不选中。每笔按交易日期归入月份，账户余额不会自动修改。退款计入收入，还款记为转账。PDF 在浏览器本地读取，仅确认后的交易入库，不上传原始 PDF。支持单份非加密月结账单，最多 20 MB / 40 页；目前非零费用、利息、现金预借、余额转移或无法对账的账单会阻止导入。扫描 PDF/OCR、云端原文件保存、月末净资产历史和本地/云端数据迁移均未包含在当前版本。
 
