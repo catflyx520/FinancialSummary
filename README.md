@@ -1,23 +1,19 @@
 # Financial Summary
 
-用 React + TypeScript + Firebase 构建的个人财务网站。现在可以直接使用本地账本，也可以配置 Firebase 后登录并使用独立的云端账本。
+个人财务管理网站，支持本地账本、虚构演示数据和可选的 Firebase 云端账本。
 
-## 已实现
+**技术栈：** React · TypeScript · Vite · Firebase
 
-- 按月查看收入、支出、结余，以及最近六个月趋势和支出分类。
-- 收支记录新增、编辑、删除、分类筛选、搜索和 CSV 导出。
-- 退款计入收入；转账和信用卡还款不重复计入收入/支出。
-- 银行、储蓄、投资、退休、信用卡和贷款账户；显示资产、负债和净资产。
-- 工资、房租、车贷、保险与订阅等固定收支计划，支持周付/月付/季付/年付；按首次日期自动计算下一次日期，可设置结束日期。收入计划可开启自动记账；支出计划可开启「自动扣账并记账」：打开或刷新账本后补记到期收支，每期一次。自动支出扣减所选现金账户余额，信用卡增加欠款；现金余额不足、账户缺失或贷款账户不会写入。旧计划的自动付款标记不触发记账，需手动开启新选项。已有自动记录的计划可以修改金额，类型、频率和首次日期锁定；如需调整这些设置，停用旧计划并新建计划。
-- Google 登录，Firestore 数据订阅和读写，限定个人 UID 的访问规则。
-- 独立本地、演示、云端工作区。演示数据是虚构数据，仅保留在内存。
-- 中文界面，支持桌面和手机布局。
+## 功能
 
-所有金额以 **USD 整数美分**保存。本地数据只存当前浏览器，不会自动同步或迁移至 Firebase。账户余额是当前快照，手动记录、PDF 导入和自动收入不修改余额；固定支出开启自动扣账后，同次保存支出记录、账户余额与计划进度。未开启自动记账的计划需自行记录。修改或删除已生成的支出记录不反向调整余额。
+- 月度收支、分类统计、资产与负债概览。
+- 交易管理、CSV 导出和固定收支计划。
+- Chase 文字型信用卡 PDF 导入与核对。
+- 中文界面，适配桌面和手机；可选 Google 登录与云端保存。
 
-## 本地运行
+## 快速开始
 
-使用 Node.js 24。**本地账本和演示模式不需要 Firebase，也不需要任何 API key。**
+使用 Node.js 24。**本地账本和演示模式不需要任何 API key。**
 
 ```sh
 git clone https://github.com/catflyx520/FinancialSummary.git
@@ -26,17 +22,11 @@ npm ci
 npm run dev
 ```
 
-打开终端显示的本地地址。未配置 Firebase 时直接进入本地账本。点击「查看演示」可预览虚构示例；返回时不会把示例写入账本。
+打开终端显示的地址即可使用。演示数据不写入真实账本；本地账本只存于当前浏览器，不会自动同步到云端。
 
-## 接入 Firebase
+## 云端配置（可选）
 
-需要 Google 登录和云端账本时，再配置 Firebase。先在项目根目录复制模板：
-
-```powershell
-Copy-Item .env.example .env.local
-```
-
-macOS/Linux 使用 `cp .env.example .env.local`。打开 Firebase Console → 项目设置 → 你的应用，选择或创建 Web 应用，将其配置填入项目根目录的 `.env.local`：
+将根目录的 `.env.example` 复制为 `.env.local`，填写自己的 Firebase Web 配置：
 
 ```dotenv
 VITE_FIREBASE_API_KEY=
@@ -45,41 +35,20 @@ VITE_FIREBASE_PROJECT_ID=
 VITE_FIREBASE_APP_ID=
 ```
 
-这四项为必填配置，值分别对应 Web 配置的 `apiKey`、`authDomain`、`projectId`、`appId`。模板中的 `VITE_FIREBASE_STORAGE_BUCKET` 和 `VITE_FIREBASE_MESSAGING_SENDER_ID` 为可选项。这里不需要 Claude 或 OpenAI key。
+PowerShell：`Copy-Item .env.example .env.local`；macOS/Linux：`cp .env.example .env.local`。
 
-还需要完成以下步骤，云端账本才能正常读写：
+还需开启 Google 登录、设置 `ownerUid` 并部署 Firestore rules，步骤见 **[Firebase 配置指南](FIREBASE_SETUP.md)**。修改配置后重启开发服务，发布版本需重新构建。
 
-1. 在 Firebase Authentication 中开启 Google 登录，并添加实际使用的开发/部署域名。
-2. 创建 Firestore 数据库。
-3. 登录应用后获取自己的 Authentication UID，在 Firestore 的 `config` 集合创建 `access` 文档，添加字符串字段 `ownerUid`，值为该 UID。
-4. 在项目根目录部署访问规则：
+`.env.local` 已被 Git 忽略。Firebase Web 配置会进入前端产物，不要填入服务账号私钥或其他服务的秘密 key。
 
-```sh
-npx firebase login
-npx firebase deploy --only firestore:rules --project YOUR_PROJECT_ID
-```
+## 使用与开发
 
-将 `YOUR_PROJECT_ID` 换成自己的 Firebase 项目 ID。完整说明见 [FIREBASE_SETUP.md](./FIREBASE_SETUP.md)。修改 `.env.local` 后重启 `npm run dev`；构建后的版本需要重新执行 `npm run build`。
-
-Firebase Web 配置会进入前端构建产物，数据访问由 Authentication 和 Firestore rules 控制。**不要把服务账号 JSON、Admin SDK 私钥或第三方私钥放进前端。** `.env.local` 已加入 Git 忽略列表，仓库仅保存空白 `.env.example`。当前功能不依赖 Firebase Storage。
-
-## 常见问题
-
-- 仍然显示未配置 Firebase：检查文件是否位于项目根目录、是否名为 `.env.local`，并确认上面四项都已填写，然后重启。
-- 能登录但读写失败：检查 `ownerUid` 是否等于当前登录用户的 UID，以及 rules 是否部署到了同一个 Firebase 项目。
-- 换浏览器后本地账本不见了：本地数据属于原浏览器，不会自动上传或同步到云端；演示数据也不会保存到真实账本。
-
-## 验证命令
+- [使用说明与限制](USAGE.md)：记账和余额规则、PDF 支持范围、常见问题。
+- [架构说明](ARCHITECTURE.md)：数据结构与权限规则。
 
 ```sh
 npm test -- --run
 npm run build
 npm run lint
-npm run test:rules # 使用本地 Firestore 模拟器，需要 Java 21+
+npm run test:rules # Firestore 模拟器，需要 Java 21+
 ```
-
-## PDF 导入与当前限制
-
-Chase 文字型信用卡 PDF 导入已实现：收支明细 → 导入 Chase PDF → 选择信用卡账户 → 核对并修正 → 确认导入。可编辑日期、名称、类型、分类、金额并排除交易；已导入记录跳过，疑似手动重复默认不选中。每笔按交易日期归入月份，账户余额不会自动修改。退款计入收入，还款记为转账。PDF 在浏览器本地读取，仅确认后的交易入库，不上传原始 PDF。支持单份非加密月结账单，最多 20 MB / 40 页；目前非零费用、利息、现金预借、余额转移或无法对账的账单会阻止导入。扫描 PDF/OCR、云端原文件保存、月末净资产历史和本地/云端数据迁移均未包含在当前版本。
-
-数据结构与规则说明见 [ARCHITECTURE.md](./ARCHITECTURE.md)。
