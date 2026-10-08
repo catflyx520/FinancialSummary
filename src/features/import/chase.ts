@@ -1,3 +1,4 @@
+import { tr } from '../../lib/i18n'
 import { parseMoney } from '../../lib/finance'
 import type { Transaction, TransactionType } from '../../types/finance'
 
@@ -39,7 +40,7 @@ function isoDate(month: number, day: number, year: number): string {
   const text = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
   const date = new Date(`${text}T00:00:00Z`)
   if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== text) {
-    throw new Error('账单包含无效日期。')
+    throw new Error(tr("账单包含无效日期。"))
   }
   return text
 }
@@ -66,14 +67,14 @@ function suggestedCategory(merchant: string): string {
 
 export function parseChaseStatement(pages: StatementPage[]): ChaseStatement {
   const all = pages.flatMap(p => p.lines.map(clean)).join('\n')
-  if (!/chase\.com|CHASE CARD/i.test(all)) throw new Error('目前只支持 Chase 文字型信用卡账单。')
+  if (!/chase\.com|CHASE CARD/i.test(all)) throw new Error(tr("目前只支持 Chase 文字型信用卡账单。"))
   const period = all.match(/Opening\s*\/\s*Closing\s+Date\s+(\d{2}\/\d{2}\/\d{2,4})\s*[-–]\s*(\d{2}\/\d{2}\/\d{2,4})/i)
-  if (!period) throw new Error('找不到有效的账期与结账日，无法确定交易年份。')
+  if (!period) throw new Error(tr("找不到有效的账期与结账日，无法确定交易年份。"))
   const openingDate = statementDate(period[1])
   const closingDate = statementDate(period[2])
-  if (openingDate > closingDate) throw new Error('账期开启日晚于结账日。')
+  if (openingDate > closingDate) throw new Error(tr("账期开启日晚于结账日。"))
   const last4 = all.match(/Account\s+Number\s*:?\s*X[\sX*-]*(\d{4})\b/i)?.[1]
-  if (!last4) throw new Error('找不到卡号末四位，无法安全识别重复账单。')
+  if (!last4) throw new Error(tr("找不到卡号末四位，无法安全识别重复账单。"))
   const issues: string[] = []
   const summary = (label: string): number | undefined => {
     const match = all.match(new RegExp(`^${label}[\\x60*†‡]*\\s+(${moneyPattern})\\s*$`, 'im'))
@@ -81,13 +82,13 @@ export function parseChaseStatement(pages: StatementPage[]): ChaseStatement {
   }
   const purchases = summary('Purchases')
   const credits = summary('Payments?,\\s*Credits')
-  for (const [label, chinese] of [['Fees Charged', '费用'], ['Interest Charged', '利息'],
-    ['Cash Advances', '现金预借'], ['Balance Transfers', '余额转移']]) {
+  for (const [label, chinese] of [['Fees Charged', tr("费用")], ['Interest Charged', tr("利息")],
+    ['Cash Advances', tr("现金预借")], ['Balance Transfers', tr("余额转移")]]) {
     const amount = summary(label)
-    if (amount === undefined) issues.push(`缺少${chinese}摘要，不能核对完整账单。`)
-    else if (amount !== 0) issues.push(`账单包含非零${chinese}，首版尚不支持，请手动记录并核对。`)
+    if (amount === undefined) issues.push(tr("缺少{0}摘要，不能核对完整账单。", [chinese]))
+    else if (amount !== 0) issues.push(tr("账单包含非零{0}，首版尚不支持，请手动记录并核对。", [chinese]))
   }
-  if (purchases === undefined || credits === undefined) issues.push('缺少消费或付款退款摘要，无法核对交易总额。')
+  if (purchases === undefined || credits === undefined) issues.push(tr("缺少消费或付款退款摘要，无法核对交易总额。"))
   const rows: StatementRow[] = []
   const occurrences = new Map<string, number>()
   let active = false
@@ -95,38 +96,38 @@ export function parseChaseStatement(pages: StatementPage[]): ChaseStatement {
   let pending: { date: string; description: string; pageNumber: number; amountText?: string } | undefined
   const flushPending = () => {
     if (pending?.amountText) addRow(pending.date, pending.description, pending.amountText, pending.pageNumber)
-    else if (pending) issues.push(`第 ${pending.pageNumber} 页 ${pending.date} 的交易金额无法识别。`)
+    else if (pending) issues.push(tr("第 {0} 页 {1} 的交易金额无法识别。", [pending.pageNumber, pending.date]))
     pending = undefined
   }
   function addRow(dateText: string, description: string, amountText: string, pageNumber: number) {
     try {
       const signedCents = cents(amountText)
-      if (signedCents === 0 || Math.abs(signedCents) > 100_000_000_000) throw new Error('金额超出范围')
+      if (signedCents === 0 || Math.abs(signedCents) > 100_000_000_000) throw new Error(tr("金额超出范围"))
       const [month, day] = dateText.split('/').map(Number)
       const closingYear = Number(closingDate.slice(0, 4))
       const date = isoDate(month, day, closingYear - (month > Number(closingDate.slice(5, 7)) ? 1 : 0))
       const distance = (Date.parse(closingDate) - Date.parse(date)) / 86400000
-      if (distance < 0 || distance > 62) throw new Error('日期超出可核对范围')
+      if (distance < 0 || distance > 62) throw new Error(tr("日期超出可核对范围"))
       const merchant = clean(description)
       let type: TransactionType = 'expense'
       if (signedCents < 0) {
         if (/\bADJUSTMENT\b|\bREWARDS?\b|\bCASH\s*BACK\b|^(?:ACCOUNT|BALANCE|STATEMENT|PROMOTIONAL) CREDIT\b/i.test(merchant)) {
-          throw new Error('无法确定信用调整性质')
+          throw new Error(tr("无法确定信用调整性质"))
         }
         const repayment = /^(?:(?:AUTOMATIC|AUTO|ONLINE|MOBILE|WEB|ELECTRONIC|PHONE)\s+)?PAYMENT(?:\s*[-–]\s*|\s+)THANK YOU$/i.test(merchant)
         if (!repayment && /^(?:(?:AUTOMATIC|AUTO|ONLINE|MOBILE|WEB|ELECTRONIC|PHONE)\s+)?PAYMENT\b/i.test(merchant)) {
-          throw new Error('无法确定付款调整性质')
+          throw new Error(tr("无法确定付款调整性质"))
         }
         type = repayment ? 'transfer' : 'refund'
       }
-      else if (section === 'credits') throw new Error('无法确定正数信用交易性质')
+      else if (section === 'credits') throw new Error(tr("无法确定正数信用交易性质"))
       const key = `${date}|${canonical(merchant)}|${signedCents}`
       const occurrence = (occurrences.get(key) ?? 0) + 1
       occurrences.set(key, occurrence)
       rows.push({ date, merchant, signedCents, amountCents: Math.abs(signedCents), type,
         category: type === 'transfer' ? 'other' : suggestedCategory(merchant), pageNumber, occurrence })
     } catch {
-      issues.push(`第 ${pageNumber} 页 ${dateText} 的日期、金额或交易类型无法核对。`)
+      issues.push(tr("第 {0} 页 {1} 的日期、金额或交易类型无法核对。", [pageNumber, dateText]))
     }
   }
   for (const page of pages) {
@@ -169,9 +170,9 @@ export function parseChaseStatement(pages: StatementPage[]): ChaseStatement {
     if (row.type === 'refund') totals.refundCents += row.amountCents
     if (row.type === 'transfer') totals.transferCents += row.amountCents
   }
-  if (!rows.length) issues.push('没有识别到交易明细；扫描图片型 PDF 暂不支持。')
-  if (purchases !== undefined && totals.expenseCents !== purchases) issues.push('消费总额与账单摘要不一致，可能缺页或有未识别交易。')
-  if (credits !== undefined && totals.refundCents + totals.transferCents !== -credits) issues.push('退款和还款总额与账单摘要不一致，可能缺页或有未识别交易。')
+  if (!rows.length) issues.push(tr("没有识别到交易明细；扫描图片型 PDF 暂不支持。"))
+  if (purchases !== undefined && totals.expenseCents !== purchases) issues.push(tr("消费总额与账单摘要不一致，可能缺页或有未识别交易。"))
+  if (credits !== undefined && totals.refundCents + totals.transferCents !== -credits) issues.push(tr("退款和还款总额与账单摘要不一致，可能缺页或有未识别交易。"))
   return { openingDate, closingDate, last4, rows, totals, issues,
     expected: { purchasesCents: purchases ?? 0, creditsCents: credits ?? 0 }, reconciled: issues.length === 0 }
 }

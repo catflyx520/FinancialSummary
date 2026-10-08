@@ -1,3 +1,4 @@
+import { tr } from './i18n'
 import type { Account, FinanceData, RecurringPayment, Transaction } from '../types/finance'
 import { emptyFinanceData } from '../types/finance'
 import { getFirebaseServices } from './firebase'
@@ -22,7 +23,7 @@ export interface ImportResult { inserted: number; skipped: number }
 export class ImportFailure extends Error {
   readonly result: ImportResult
   constructor(result: ImportResult, cause: unknown) {
-    super(`导入中断：${asError(cause).message}。已新增 ${result.inserted} 笔、跳过 ${result.skipped} 笔；可以重试。`)
+    super(tr("导入中断：{0}。已新增 {1} 笔、跳过 {2} 笔；可以重试。", [asError(cause).message, result.inserted, result.skipped]))
     this.result = { ...result }
   }
 }
@@ -77,7 +78,7 @@ function mergeRecurringPayment(
     payment.frequency !== current.frequency ||
     (payment.type ?? 'expense') !== (current.type ?? 'expense')
   )) {
-    throw new Error('已有自动记账记录后不能修改类型、频率或首次收支日；请停用旧计划并新建计划。')
+    throw new Error(tr("已有自动记账记录后不能修改类型、频率或首次收支日；请停用旧计划并新建计划。"))
   }
   const lastPostedDate = [current?.lastPostedDate, payment.lastPostedDate]
     .filter((date): date is string => Boolean(date)).sort().at(-1)
@@ -89,22 +90,22 @@ function mergeRecurringPayment(
 
 function scheduledRecord(plan: RecurringPayment, date: string, now: string): Transaction {
   const id = `auto_${plan.id}_${date}`
-  if (id.length > 128) throw new Error('计划 ID 过长，无法自动记账。')
+  if (id.length > 128) throw new Error(tr("计划 ID 过长，无法自动记账。"))
   return {
     id, date, merchant: plan.name, amountCents: plan.amountCents,
     type: plan.type ?? 'expense', category: plan.category, accountId: plan.accountId,
-    note: plan.type === 'income' ? '由固定收入计划自动生成' : '由固定支出计划自动扣账生成', source: 'recurring',
+    note: plan.type === 'income' ? tr("由固定收入计划自动生成") : tr("由固定支出计划自动扣账生成"), source: 'recurring',
     createdAt: now, updatedAt: now,
   }
 }
 
 function debitAccount(account: Account | undefined, amountCents: number, plan: RecurringPayment, now: string): Account {
-  if (!account) throw new Error(`${plan.name}：扣款账户不存在，请重新选择账户。`)
-  if (account.type === 'loan') throw new Error(`${plan.name}：贷款账户不能作为扣款账户，请选择付款的现金账户。`)
+  if (!account) throw new Error(tr("{0}：扣款账户不存在，请重新选择账户。", [plan.name]))
+  if (account.type === 'loan') throw new Error(tr("{0}：贷款账户不能作为扣款账户，请选择付款的现金账户。", [plan.name]))
   const balanceCents = account.balanceCents + (account.type === 'credit' ? amountCents : -amountCents)
-  if (balanceCents < 0) throw new Error(`${plan.name}：${account.name} 余额不足，本轮补记未执行；此前已完成的扣账保留。`)
+  if (balanceCents < 0) throw new Error(tr("{0}：{1} 余额不足，本轮补记未执行；此前已完成的扣账保留。", [plan.name, account.name]))
   if (!Number.isSafeInteger(balanceCents) || balanceCents > MAX_RECORD_AMOUNT_CENTS) {
-    throw new Error(`${plan.name}：扣账后的账户金额超出允许范围。`)
+    throw new Error(tr("{0}：扣账后的账户金额超出允许范围。", [plan.name]))
   }
   return { ...account, balanceCents, updatedAt: now }
 }
@@ -191,7 +192,7 @@ function createMutableRepository(
       return update((currentData) => {
         if (expectedBalanceCents !== undefined &&
           currentData.accounts.find(value => value.id === account.id)?.balanceCents !== expectedBalanceCents) {
-          throw new Error('账户余额已变更，请关闭表单并重新打开后修改。')
+          throw new Error(tr("账户余额已变更，请关闭表单并重新打开后修改。"))
         }
         return { ...currentData, accounts: replaceById(currentData.accounts, account) }
       })
@@ -490,7 +491,7 @@ export async function createFirestoreRepository(uid: string): Promise<FinanceRep
         const ref = documentRef('accounts', account.id)
         const current = await transaction.get(ref)
         if (!current.exists() || (current.data() as Account).balanceCents !== expectedBalanceCents) {
-          throw new Error('账户余额已变更，请关闭表单并重新打开后修改。')
+          throw new Error(tr("账户余额已变更，请关闭表单并重新打开后修改。"))
         }
         assertValidRecord('accounts', account)
         transaction.set(ref, { ...account })

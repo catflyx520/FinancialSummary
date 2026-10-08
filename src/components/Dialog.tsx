@@ -1,3 +1,4 @@
+import { tr } from '../lib/i18n'
 import { useEffect, useId, useRef } from 'react'
 import type { ReactNode } from 'react'
 import { Icon } from './Icon'
@@ -72,7 +73,7 @@ export function Dialog({
           <button
             type="button"
             className="icon-button"
-            aria-label="关闭"
+            aria-label={tr("关闭")}
             disabled={busy}
             onClick={onClose}
           >

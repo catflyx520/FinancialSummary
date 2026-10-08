@@ -1,3 +1,4 @@
+import { tr, locale } from '../../lib/i18n'
 import { useState } from 'react'
 import type {
   Account,
@@ -35,8 +36,8 @@ export function TransactionTable({
     return (
       <div className="empty-state">
         <Icon name="transactions" size={32} />
-        <p>还没有符合条件的记录</p>
-        <span>添加一笔收入或消费，开始整理你的财务。</span>
+        <p>{tr("还没有符合条件的记录")}</p>
+        <span>{tr("添加一笔收入或消费，开始整理你的财务。")}</span>
       </div>
     )
   return (
@@ -44,12 +45,12 @@ export function TransactionTable({
       <table className="transaction-table">
         <thead>
           <tr>
-            <th>名称 / 分类</th>
-            <th>日期</th>
-            <th>账户</th>
-            <th className="amount-cell">金额</th>
+            <th>{tr("名称 / 分类")}</th>
+            <th>{tr("日期")}</th>
+            <th>{tr("账户")}</th>
+            <th className="amount-cell">{tr("金额")}</th>
             <th>
-              <span className="sr-only">操作</span>
+              <span className="sr-only">{tr("操作")}</span>
             </th>
           </tr>
         </thead>
@@ -71,8 +72,8 @@ export function TransactionTable({
                       <small>
                         {transactionTypes[t.type]} ·{' '}
                         {category?.label ?? t.category}
-                        {t.source === 'recurring' && ' · 自动记账'}
-                        {t.source === 'pdf' && ' · PDF 导入'}
+                        {t.source === 'recurring' && tr(" · 自动记账")}
+                        {t.source === 'pdf' && tr(" · PDF 导入")}
                         {t.note && <span title={t.note}> · {t.note}</span>}
                       </small>
                     </span>
@@ -81,7 +82,7 @@ export function TransactionTable({
                 <td className="nowrap">{t.date}</td>
                 <td>
                   {accounts.find((a) => a.id === t.accountId)?.name ??
-                    (t.accountId ? '已移除账户' : '未指定')}
+                    (t.accountId ? tr("已移除账户") : tr("未指定"))}
                 </td>
                 <td className={`amount-cell ${incoming ? 'positive' : ''}`}>
                   {t.type === 'transfer' ? '' : incoming ? '+' : '−'}
@@ -91,7 +92,7 @@ export function TransactionTable({
                   <div className="row-actions">
                     <button
                       className="icon-button"
-                      aria-label={`编辑 ${t.merchant}`}
+                      aria-label={tr("编辑 {0}", [t.merchant])}
                       onClick={() => onEdit(t)}
                     >
                       <Icon name="edit" size={16} />
@@ -99,7 +100,7 @@ export function TransactionTable({
                     {onDelete && (
                       <button
                         className="icon-button danger-hover"
-                        aria-label={`删除 ${t.merchant}`}
+                        aria-label={tr("删除 {0}", [t.merchant])}
                         onClick={() => onDelete(t)}
                       >
                         <Icon name="trash" size={16} />
@@ -159,20 +160,20 @@ export function Transactions({
   return (
     <section className="panel records-panel">
       <div className="filters">
-        <button className="button button-primary" onClick={onImport}>导入 Chase PDF</button>
+        <button className="button button-primary" onClick={onImport}>{tr("导入 Chase PDF")}</button>
         <input
           className="search-input"
-          aria-label="搜索收支"
-          placeholder="搜索商户或备注…"
+          aria-label={tr("搜索收支")}
+          placeholder={tr("搜索商户或备注…")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
         <select
-          aria-label="筛选类型"
+          aria-label={tr("筛选类型")}
           value={type}
           onChange={(e) => setType(e.target.value)}
         >
-          <option value="all">全部类型</option>
+          <option value="all">{tr("全部类型")}</option>
           {Object.entries(transactionTypes).map(([id, label]) => (
             <option key={id} value={id}>
               {label}
@@ -180,11 +181,11 @@ export function Transactions({
           ))}
         </select>
         <select
-          aria-label="筛选分类"
+          aria-label={tr("筛选分类")}
           value={category}
           onChange={(e) => setCategory(e.target.value)}
         >
-          <option value="all">全部分类</option>
+          <option value="all">{tr("全部分类")}</option>
           {categories.map((c) => (
             <option key={c.id} value={c.id}>
               {c.label}
@@ -196,12 +197,10 @@ export function Transactions({
           onClick={download}
           disabled={!records.length}
         >
-          <Icon name="download" size={16} />
-          导出 CSV
-        </button>
+          <Icon name="download" size={16} />{tr("导出 CSV")}</button>
       </div>
       <div className="records-count">
-        {month} · {records.length} 笔记录<span>金额均为 USD</span>
+        {month} · {records.length}{tr(" 笔记录")}<span>{tr("金额均为 USD")}</span>
       </div>
       <TransactionTable
         transactions={records}
@@ -209,9 +208,7 @@ export function Transactions({
         onEdit={onEdit}
         onDelete={onDelete}
       />
-      <p className="panel-footnote">
-        转账与信用卡还款请选择「转账」；退款请选择「退款（收入）」，会计入收入。
-      </p>
+      <p className="panel-footnote">{tr("转账与信用卡还款请选择「转账」；退款请选择「退款（收入）」，会计入收入。")}</p>
     </section>
   )
 }
@@ -230,15 +227,15 @@ export function Accounts({
     <>
       <div className="balance-strip">
         <div>
-          <span>资产总额</span>
+          <span>{tr("资产总额")}</span>
           <strong>{formatMoney(summary.assetsCents)}</strong>
         </div>
         <div>
-          <span>负债总额</span>
+          <span>{tr("负债总额")}</span>
           <strong>{formatMoney(summary.liabilitiesCents)}</strong>
         </div>
         <div>
-          <span>当前净资产</span>
+          <span>{tr("当前净资产")}</span>
           <strong className="positive">
             {formatMoney(summary.netWorthCents)}
           </strong>
@@ -246,9 +243,7 @@ export function Accounts({
       </div>
       <div className="info-note">
         <Icon name="accounts" size={18} />
-        <span>
-          手动记录、导入和自动收入不会改变余额；固定支出开启自动扣账后会更新余额。信用卡和贷款请输入尚欠金额。
-        </span>
+        <span>{tr("手动记录、导入和自动收入不会改变余额；固定支出开启自动扣账后会更新余额。信用卡和贷款请输入尚欠金额。")}</span>
       </div>
       {data.accounts.length ? (
         <div className="accounts-grid">
@@ -264,14 +259,14 @@ export function Accounts({
                 <div className="row-actions">
                   <button
                     className="icon-button"
-                    aria-label={`编辑 ${a.name}`}
+                    aria-label={tr("编辑 {0}", [a.name])}
                     onClick={() => onEdit(a)}
                   >
                     <Icon name="edit" size={16} />
                   </button>
                   <button
                     className="icon-button danger-hover"
-                    aria-label={`删除 ${a.name}`}
+                    aria-label={tr("删除 {0}", [a.name])}
                     onClick={() => onDelete(a)}
                   >
                     <Icon name="trash" size={16} />
@@ -285,9 +280,8 @@ export function Accounts({
               </strong>
               <p className="field-note">
                 {a.type === 'credit' || a.type === 'loan'
-                  ? '待偿还余额'
-                  : '账户余额'}{' '}
-                · 更新于 {new Date(a.updatedAt).toLocaleDateString('zh-CN')}
+                  ? tr("待偿还余额")
+                  : tr("账户余额")}{' '}{tr("· 更新于 ")}{new Date(a.updatedAt).toLocaleDateString(locale())}
               </p>
             </article>
           ))}
@@ -295,8 +289,8 @@ export function Accounts({
       ) : (
         <section className="panel empty-state">
           <Icon name="accounts" size={36} />
-          <p>建立你的资产全景</p>
-          <span>添加银行、储蓄、投资账户，以及信用卡或贷款负债。</span>
+          <p>{tr("建立你的资产全景")}</p>
+          <span>{tr("添加银行、储蓄、投资账户，以及信用卡或贷款负债。")}</span>
         </section>
       )}
     </>
@@ -323,23 +317,22 @@ export function Recurring({
       <div className="recurring-banner">
         <div>
           <p className="eyebrow">PLAN AHEAD</p>
-          <h2>让固定收支，心中有数。</h2>
-          <p>工资、房租、车贷和订阅，每一笔都有安排。</p>
+          <h2>{tr("让固定收支，心中有数。")}</h2>
+          <p>{tr("工资、房租、车贷和订阅，每一笔都有安排。")}</p>
         </div>
         <div>
-          <span>预计每月收入</span>
+          <span>{tr("预计每月收入")}</span>
           <strong>{formatMoney(monthlyRecurringCents(payments, today, 'income'))}</strong>
-          <span>预计每月支出</span>
+          <span>{tr("预计每月支出")}</span>
           <strong>{formatMoney(monthlyRecurringCents(payments, today, 'expense'))}</strong>
-          <small>按频率换算月均；实际收支请看收支明细。</small>
+          <small>{tr("按频率换算月均；实际收支请看收支明细。")}</small>
         </div>
       </div>
       <section className="panel">
         <div className="panel-heading">
-          <h2>固定收支计划</h2>
+          <h2>{tr("固定收支计划")}</h2>
           <span className="small-tag">
-            {payments.filter((p) => isRecurringActive(p, today)).length} 项启用
-          </span>
+            {payments.filter((p) => isRecurringActive(p, today)).length}{tr(" 项启用")}</span>
         </div>
         {payments.length ? (
           <div className="payment-list">
@@ -356,20 +349,20 @@ export function Recurring({
                   <small>
                     {categories.find((c) => c.id === p.category)?.label ??
                       p.category}{' '}
-                    · {p.frequency === 'monthly' ? `每月 ${Number(p.nextDueDate.slice(8))} 号` : frequencies[p.frequency]}
-                    {' · '}{(p.type ?? 'expense') === 'income' ? '收入' : '支出'}
-                    {p.autoPost ? ((p.type ?? 'expense') === 'income' ? ' · 自动记账' : ' · 自动扣账并记账') : p.autoPay ? ' · 银行自动付款标记' : ''}
+                    · {p.frequency === 'monthly' ? tr("每月 {0} 号", [Number(p.nextDueDate.slice(8))]) : frequencies[p.frequency]}
+                    {' · '}{(p.type ?? 'expense') === 'income' ? tr("收入") : tr("支出")}
+                    {p.autoPost ? ((p.type ?? 'expense') === 'income' ? tr(" · 自动记账") : tr(" · 自动扣账并记账")) : p.autoPay ? tr(" · 银行自动付款标记") : ''}
                   </small>
                 </div>
                 <div className="payment-date">
                   <span>{upcomingRecurringDate(p, today) ?? '—'}</span>
                   <small>
                     {p.endDate && p.endDate < today
-                      ? '已结束'
-                      : !p.active ? '已暂停'
-                        : upcomingRecurringDate(p, today) ? '下次计划日期' : '结束前无后续记录'}
+                      ? tr("已结束")
+                      : !p.active ? tr("已暂停")
+                        : upcomingRecurringDate(p, today) ? tr("下次计划日期") : tr("结束前无后续记录")}
                   </small>
-                  <small>{p.endDate ? `结束于 ${p.endDate}` : '长期持续'}</small>
+                  <small>{p.endDate ? tr("结束于 {0}", [p.endDate]) : tr("长期持续")}</small>
                 </div>
                 <strong className="payment-amount">
                   {formatMoney(p.amountCents)}
@@ -377,14 +370,14 @@ export function Recurring({
                 <div className="row-actions">
                   <button
                     className="icon-button"
-                    aria-label={`编辑 ${p.name}`}
+                    aria-label={tr("编辑 {0}", [p.name])}
                     onClick={() => onEdit(p)}
                   >
                     <Icon name="edit" size={16} />
                   </button>
                   <button
                     className="icon-button danger-hover"
-                    aria-label={`删除 ${p.name}`}
+                    aria-label={tr("删除 {0}", [p.name])}
                     onClick={() => onDelete(p)}
                   >
                     <Icon name="trash" size={16} />
@@ -396,13 +389,11 @@ export function Recurring({
         ) : (
           <div className="empty-state">
             <Icon name="recurring" size={32} />
-            <p>还没有固定收支计划</p>
-            <span>从每月工资或房租开始。</span>
+            <p>{tr("还没有固定收支计划")}</p>
+            <span>{tr("从每月工资或房租开始。")}</span>
           </div>
         )}
-        <p className="panel-footnote">
-          打开或刷新账本会补记到期的自动收支。自动支出扣减现金余额或增加信用卡欠款；仅有银行自动付款标记的计划不会自动记账。
-        </p>
+        <p className="panel-footnote">{tr("打开或刷新账本会补记到期的自动收支。自动支出扣减现金余额或增加信用卡欠款；仅有银行自动付款标记的计划不会自动记账。")}</p>
       </section>
     </>
   )

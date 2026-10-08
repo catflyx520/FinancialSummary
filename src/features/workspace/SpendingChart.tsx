@@ -1,3 +1,4 @@
+import { tr } from '../../lib/i18n'
 import { categories, formatMoney } from '../../lib/finance'
 import { Icon } from '../../components/Icon'
 
@@ -14,8 +15,8 @@ export function SpendingChart({
     return (
       <div className="empty-state compact">
         <Icon name="leaf" size={30} />
-        <p>这个月还没有支出记录</p>
-        <span>添加消费后，在这里查看分类。</span>
+        <p>{tr("这个月还没有支出记录")}</p>
+        <span>{tr("添加消费后，在这里查看分类。")}</span>
       </div>
     )
   }
@@ -37,7 +38,7 @@ export function SpendingChart({
   return (
     <div className="spending-chart">
       <div className="spending-donut">
-        <svg viewBox="0 0 220 220" role="img" aria-label="当月支出分类占比环形图">
+        <svg viewBox="0 0 220 220" role="img" aria-label={tr("当月支出分类占比环形图")}>
           {slices.map((slice) => (
             <circle
               key={slice.category}
@@ -56,12 +57,12 @@ export function SpendingChart({
           ))}
         </svg>
         <div className="spending-donut-total">
-          <span>当月总支出</span>
+          <span>{tr("当月总支出")}</span>
           <strong>{formatMoney(totalCents)}</strong>
-          <small>{items.length} 个分类</small>
+          <small>{items.length}{tr(" 个分类")}</small>
         </div>
       </div>
-      <ul className="spending-legend" aria-label="支出分类金额与占比">
+      <ul className="spending-legend" aria-label={tr("支出分类金额与占比")}>
         {slices.map((slice) => (
           <li key={slice.category}>
             <span className="spending-category">

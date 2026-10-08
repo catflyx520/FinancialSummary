@@ -1,3 +1,4 @@
+import { tr } from '../../lib/i18n'
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import {
@@ -50,9 +51,9 @@ function AccountChoice({
         onChange={(event) => onChange(event.target.value)}
         disabled={disabled}
       >
-        <option value="">未指定账户</option>
+        <option value="">{tr("未指定账户")}</option>
         {!selectedAccountExists && (
-          <option value={value}>原账户（已不可用）</option>
+          <option value={value}>{tr("原账户（已不可用）")}</option>
         )}
         {accounts.map((account) => (
           <option key={account.id} value={account.id}>
@@ -87,11 +88,9 @@ function SaveActions({
         type="button"
         onClick={onCancel}
         disabled={saving}
-      >
-        取消
-      </button>
+      >{tr("取消")}</button>
       <button className="button button-primary" type="submit" disabled={saving}>
-        {saving ? '保存中…' : '保存'}
+        {saving ? tr("保存中…") : tr("保存")}
       </button>
     </div>
   )
@@ -118,15 +117,15 @@ function parseAmount(value: string, allowZero: boolean) {
   try {
     amount = parseMoney(trimmed)
   } catch {
-    throw new Error('请输入有效金额，最多保留两位小数。')
+    throw new Error(tr("请输入有效金额，最多保留两位小数。"))
   }
 
   if (!Number.isSafeInteger(amount) || (allowZero ? amount < 0 : amount <= 0)) {
-    throw new Error(allowZero ? '金额不能小于 0。' : '金额必须大于 0。')
+    throw new Error(allowZero ? tr("金额不能小于 0。") : tr("金额必须大于 0。"))
   }
   if (amount > MAX_RECORD_AMOUNT_CENTS) {
     throw new Error(
-      `单笔金额不能超过 ${formatMoney(MAX_RECORD_AMOUNT_CENTS)}。`,
+      tr("单笔金额不能超过 {0}。", [formatMoney(MAX_RECORD_AMOUNT_CENTS)]),
     )
   }
   return amount
@@ -134,8 +133,8 @@ function parseAmount(value: string, allowZero: boolean) {
 
 function requiredName(value: string, label: string) {
   const trimmed = value.trim()
-  if (!trimmed) throw new Error(`请输入${label}。`)
-  if (trimmed.length > 120) throw new Error(`${label}不能超过 120 个字符。`)
+  if (!trimmed) throw new Error(tr("请输入{0}。", [label]))
+  if (trimmed.length > 120) throw new Error(tr("{0}不能超过 120 个字符。", [label]))
   return trimmed
 }
 
@@ -147,7 +146,7 @@ function moneyInput(cents: number | undefined) {
 function errorText(error: unknown) {
   return error instanceof Error && error.message
     ? error.message
-    : '保存失败，请稍后重试。'
+    : tr("保存失败，请稍后重试。")
 }
 
 interface TransactionFormProps extends SharedFormProps<Transaction> {
@@ -179,11 +178,11 @@ export function TransactionForm({
     setError('')
 
     try {
-      const cleanMerchant = requiredName(merchant, '名称 / 商户')
-      if (!isValidDate(transactionDate)) throw new Error('请输入有效日期。')
+      const cleanMerchant = requiredName(merchant, tr("名称 / 商户"))
+      if (!isValidDate(transactionDate)) throw new Error(tr("请输入有效日期。"))
       const amountCents = parseAmount(amount, false)
-      if (!category) throw new Error('请选择分类。')
-      if (note.length > 500) throw new Error('备注不能超过 500 个字符。')
+      if (!category) throw new Error(tr("请选择分类。"))
+      if (note.length > 500) throw new Error(tr("备注不能超过 500 个字符。"))
 
       const now = new Date().toISOString()
       const value: Transaction = {
@@ -211,7 +210,7 @@ export function TransactionForm({
   return (
     <form className="form-grid" onSubmit={handleSubmit} aria-busy={saving}>
       <label className="field field-wide">
-        <span>名称 / 商户</span>
+        <span>{tr("名称 / 商户")}</span>
         <input
           value={merchant}
           onChange={(event) => setMerchant(event.target.value)}
@@ -222,7 +221,7 @@ export function TransactionForm({
       </label>
 
       <label className="field">
-        <span>日期</span>
+        <span>{tr("日期")}</span>
         <input
           type="date"
           value={transactionDate}
@@ -232,7 +231,7 @@ export function TransactionForm({
       </label>
 
       <label className="field">
-        <span>类型</span>
+        <span>{tr("类型")}</span>
         <select
           value={type}
           onChange={(event) => setType(event.target.value as TransactionType)}
@@ -246,7 +245,7 @@ export function TransactionForm({
       </label>
 
       <label className="field">
-        <span>金额（USD）</span>
+        <span>{tr("金额（USD）")}</span>
         <input
           type="text"
           inputMode="decimal"
@@ -258,7 +257,7 @@ export function TransactionForm({
       </label>
 
       <label className="field">
-        <span>分类</span>
+        <span>{tr("分类")}</span>
         <select value={category} onChange={(event) => setCategory(event.target.value)}>
           {categories.map((item) => (
             <option key={item.id} value={item.id}>
@@ -271,23 +270,23 @@ export function TransactionForm({
       <AccountChoice
         accounts={accounts}
         value={accountId}
-        label="账户"
+        label={tr("账户")}
         onChange={setAccountId}
       />
 
       <label className="field field-wide">
-        <span>备注</span>
+        <span>{tr("备注")}</span>
         <textarea
           value={note}
           onChange={(event) => setNote(event.target.value)}
           maxLength={500}
           rows={3}
         />
-        <small className="field-note">最多 500 个字符</small>
+        <small className="field-note">{tr("最多 500 个字符")}</small>
       </label>
 
       {initial?.source === 'recurring' && initial.type === 'expense' && (
-        <p className="field-wide subtle">这笔记录已经自动扣账。修改记录不会调整已扣款的账户余额；如需更正扣款，请同时手动修改账户余额。</p>
+        <p className="field-wide subtle">{tr("这笔记录已经自动扣账。修改记录不会调整已扣款的账户余额；如需更正扣款，请同时手动修改账户余额。")}</p>
       )}
 
       <ErrorMessage message={error} />
@@ -312,7 +311,7 @@ export function AccountForm({
     setError('')
 
     try {
-      const cleanName = requiredName(name, '账户名称')
+      const cleanName = requiredName(name, tr("账户名称"))
       const balanceCents = parseAmount(balance, true)
       const value: Account = {
         id: initial?.id ?? crypto.randomUUID(),
@@ -334,7 +333,7 @@ export function AccountForm({
   return (
     <form className="form-grid" onSubmit={handleSubmit} aria-busy={saving}>
       <label className="field field-wide">
-        <span>名称</span>
+        <span>{tr("名称")}</span>
         <input
           value={name}
           onChange={(event) => setName(event.target.value)}
@@ -345,7 +344,7 @@ export function AccountForm({
       </label>
 
       <label className="field">
-        <span>类型</span>
+        <span>{tr("类型")}</span>
         <select
           value={type}
           onChange={(event) => setType(event.target.value as AccountType)}
@@ -359,7 +358,7 @@ export function AccountForm({
       </label>
 
       <label className="field">
-        <span id="account-balance-label">金额（USD）</span>
+        <span id="account-balance-label">{tr("金额（USD）")}</span>
         <input
           type="text"
           inputMode="decimal"
@@ -370,9 +369,7 @@ export function AccountForm({
           aria-describedby="account-balance-note"
           required
         />
-        <small className="field-note" id="account-balance-note">
-          信用卡和贷款请输入当前欠款额
-        </small>
+        <small className="field-note" id="account-balance-note">{tr("信用卡和贷款请输入当前欠款额")}</small>
       </label>
 
       <ErrorMessage message={error} />
@@ -414,17 +411,17 @@ export function RecurringForm({
     setError('')
 
     try {
-      const cleanName = requiredName(name, '计划名称')
+      const cleanName = requiredName(name, tr("计划名称"))
       const amountCents = parseAmount(amount, false)
-      if (!category) throw new Error('请选择分类。')
-      if (!isValidDate(nextDueDate)) throw new Error('请输入有效的首次收支日。')
+      if (!category) throw new Error(tr("请选择分类。"))
+      if (!isValidDate(nextDueDate)) throw new Error(tr("请输入有效的首次收支日。"))
       if (endDate && (!isValidDate(endDate) || endDate < nextDueDate)) {
-        throw new Error('结束日期不能早于首次收支日。')
+        throw new Error(tr("结束日期不能早于首次收支日。"))
       }
       if (type === 'expense' && autoPost) {
         const debit = accounts.find(account => account.id === accountId)
-        if (!debit) throw new Error('自动扣账请选择有效的扣款账户。')
-        if (debit.type === 'loan') throw new Error('贷款账户不能作为扣款账户，请选择实际付款的现金账户。')
+        if (!debit) throw new Error(tr("自动扣账请选择有效的扣款账户。"))
+        if (debit.type === 'loan') throw new Error(tr("贷款账户不能作为扣款账户，请选择实际付款的现金账户。"))
       }
 
       const now = new Date().toISOString()
@@ -457,7 +454,7 @@ export function RecurringForm({
   return (
     <form className="form-grid" onSubmit={handleSubmit} aria-busy={saving}>
       <label className="field field-wide">
-        <span>名称</span>
+        <span>{tr("名称")}</span>
         <input
           value={name}
           onChange={(event) => setName(event.target.value)}
@@ -468,7 +465,7 @@ export function RecurringForm({
       </label>
 
       <label className="field">
-        <span>类型</span>
+        <span>{tr("类型")}</span>
         <select value={type} disabled={Boolean(initial?.lastPostedDate)} onChange={(event) => {
           const next = event.target.value as 'income' | 'expense'
           setType(next)
@@ -476,13 +473,13 @@ export function RecurringForm({
           if (next === 'income') setAutoPay(false)
           setCategory(next === 'income' ? 'income' : 'housing')
         }}>
-          <option value="income">收入</option>
-          <option value="expense">支出</option>
+          <option value="income">{tr("收入")}</option>
+          <option value="expense">{tr("支出")}</option>
         </select>
       </label>
 
       <label className="field">
-        <span>分类</span>
+        <span>{tr("分类")}</span>
         <select value={category} onChange={(event) => setCategory(event.target.value)}>
           {categories.map((item) => (
             <option key={item.id} value={item.id}>
@@ -493,7 +490,7 @@ export function RecurringForm({
       </label>
 
       <label className="field">
-        <span>金额（USD）</span>
+        <span>{tr("金额（USD）")}</span>
         <input
           type="text"
           inputMode="decimal"
@@ -505,7 +502,7 @@ export function RecurringForm({
       </label>
 
       <label className="field">
-        <span>频率</span>
+        <span>{tr("频率")}</span>
         <select
           value={frequency}
           disabled={Boolean(initial?.lastPostedDate)}
@@ -522,7 +519,7 @@ export function RecurringForm({
       </label>
 
       <label className="field">
-        <span>首次收支日</span>
+        <span>{tr("首次收支日")}</span>
         <input
           type="date"
           value={nextDueDate}
@@ -533,33 +530,33 @@ export function RecurringForm({
       </label>
 
       <label className="field">
-        <span>结束日期（可选）</span>
+        <span>{tr("结束日期（可选）")}</span>
         <input type="date" value={endDate} min={nextDueDate}
           onChange={(event) => setEndDate(event.target.value)} />
       </label>
       <p className="field-wide subtle">
         {frequency === 'monthly' && isValidDate(nextDueDate)
-          ? `从 ${nextDueDate} 开始，每月 ${Number(nextDueDate.slice(8))} 号${type === 'income' ? '计入收入' : '付款'}；当月没有这一天时按月末计算。`
-          : `从首次收支日开始，按所选频率重复计算下一次${type === 'income' ? '收入' : '付款'}日期。`}
-        {' '}结束日期留空表示长期持续，结束当天仍有效。{autoPost
+          ? tr("从 {0} 开始，每月 {1} 号{2}；当月没有这一天时按月末计算。", [nextDueDate, Number(nextDueDate.slice(8)), type === 'income' ? '计入收入' : '付款'])
+          : tr("从首次收支日开始，按所选频率重复计算下一次{0}日期。", [type === 'income' ? '收入' : '付款'])}
+        {' '}{tr("结束日期留空表示长期持续，结束当天仍有效。")}{autoPost
           ? type === 'income'
-            ? '开启自动记账后，到日期打开账本会生成收入记录；首次日期在过去时会补记至今。'
-            : '到期打开或刷新账本，会生成支出记录并扣减现金账户余额；信用卡会增加欠款。首次日期在过去时会补记至今；余额不足时停止未完成的补记，已经完成的扣账保留。'
-          : '关闭自动记账时，计划仅用于预算和提醒。'}
-        {initial?.lastPostedDate ? ' 已有自动记录后，如需修改类型、频率或首次日期，请停用旧计划并新建计划。' : ''}
+            ? tr("开启自动记账后，到日期打开账本会生成收入记录；首次日期在过去时会补记至今。")
+            : tr("到期打开或刷新账本，会生成支出记录并扣减现金账户余额；信用卡会增加欠款。首次日期在过去时会补记至今；余额不足时停止未完成的补记，已经完成的扣账保留。")
+          : tr("关闭自动记账时，计划仅用于预算和提醒。")}
+        {initial?.lastPostedDate ? tr(" 已有自动记录后，如需修改类型、频率或首次日期，请停用旧计划并新建计划。") : ''}
       </p>
 
       <AccountChoice
         accounts={accounts}
         value={accountId}
-        label={type === 'income' ? '入账账户' : '扣款账户'}
+        label={type === 'income' ? tr("入账账户") : tr("扣款账户")}
         onChange={setAccountId}
       />
 
       <label className="checkbox-field">
         <input type="checkbox" checked={autoPost}
           onChange={(event) => setAutoPost(event.target.checked)} />
-        <span>{type === 'income' ? '自动记账' : '自动扣账并记账'}</span>
+        <span>{type === 'income' ? tr("自动记账") : tr("自动扣账并记账")}</span>
       </label>
 
       {type === 'expense' && <label className="checkbox-field">
@@ -568,7 +565,7 @@ export function RecurringForm({
           checked={autoPay}
           onChange={(event) => setAutoPay(event.target.checked)}
         />
-        <span>银行自动付款（仅标记）</span>
+        <span>{tr("银行自动付款（仅标记）")}</span>
       </label>}
 
       <label className="checkbox-field">
@@ -577,7 +574,7 @@ export function RecurringForm({
           checked={active}
           onChange={(event) => setActive(event.target.checked)}
         />
-        <span>启用计划</span>
+        <span>{tr("启用计划")}</span>
       </label>
 
       <ErrorMessage message={error} />

@@ -1,3 +1,4 @@
+import { tr } from './i18n'
 import type {
   Account,
   AccountType,
@@ -9,47 +10,47 @@ import type {
 } from '../types/finance'
 
 export const categories: { id: string; label: string; color: string }[] = [
-  { id: 'housing', label: '住房', color: '#526f5b' },
-  { id: 'food', label: '餐饮', color: '#b88155' },
-  { id: 'groceries', label: '日常杂货', color: '#879b58' },
-  { id: 'transportation', label: '交通', color: '#628177' },
-  { id: 'car_payment', label: '车贷', color: '#8b7359' },
-  { id: 'utilities', label: '水电与账单', color: '#778b80' },
-  { id: 'insurance', label: '保险', color: '#6f8968' },
-  { id: 'subscription', label: '订阅', color: '#9b765f' },
-  { id: 'shopping', label: '购物', color: '#a77865' },
-  { id: 'health', label: '医疗健康', color: '#648d72' },
-  { id: 'entertainment', label: '娱乐', color: '#b58a52' },
-  { id: 'education', label: '教育', color: '#7b8062' },
-  { id: 'travel', label: '旅行', color: '#517f70' },
-  { id: 'income', label: '收入', color: '#3f8054' },
-  { id: 'other', label: '其他', color: '#858d82' },
+  { id: 'housing', get label() { return tr("住房") }, color: '#526f5b' },
+  { id: 'food', get label() { return tr("餐饮") }, color: '#b88155' },
+  { id: 'groceries', get label() { return tr("日常杂货") }, color: '#879b58' },
+  { id: 'transportation', get label() { return tr("交通") }, color: '#628177' },
+  { id: 'car_payment', get label() { return tr("车贷") }, color: '#8b7359' },
+  { id: 'utilities', get label() { return tr("水电与账单") }, color: '#778b80' },
+  { id: 'insurance', get label() { return tr("保险") }, color: '#6f8968' },
+  { id: 'subscription', get label() { return tr("订阅") }, color: '#9b765f' },
+  { id: 'shopping', get label() { return tr("购物") }, color: '#a77865' },
+  { id: 'health', get label() { return tr("医疗健康") }, color: '#648d72' },
+  { id: 'entertainment', get label() { return tr("娱乐") }, color: '#b58a52' },
+  { id: 'education', get label() { return tr("教育") }, color: '#7b8062' },
+  { id: 'travel', get label() { return tr("旅行") }, color: '#517f70' },
+  { id: 'income', get label() { return tr("收入") }, color: '#3f8054' },
+  { id: 'other', get label() { return tr("其他") }, color: '#858d82' },
 ]
 
 export const MAX_RECORD_AMOUNT_CENTS = 100_000_000_000
 
 export const accountTypes: Record<AccountType, string> = {
-  checking: '支票账户',
-  savings: '储蓄账户',
-  credit: '信用卡',
-  investment: '投资账户',
-  retirement: '退休账户',
-  loan: '贷款',
-  other: '其他',
+  get checking() { return tr("支票账户") },
+  get savings() { return tr("储蓄账户") },
+  get credit() { return tr("信用卡") },
+  get investment() { return tr("投资账户") },
+  get retirement() { return tr("退休账户") },
+  get loan() { return tr("贷款") },
+  get other() { return tr("其他") },
 }
 
 export const frequencies: Record<RecurringFrequency, string> = {
-  weekly: '每周',
-  monthly: '每月',
-  quarterly: '每季度',
-  yearly: '每年',
+  get weekly() { return tr("每周") },
+  get monthly() { return tr("每月") },
+  get quarterly() { return tr("每季度") },
+  get yearly() { return tr("每年") },
 }
 
 export const transactionTypes: Record<TransactionType, string> = {
-  income: '收入',
-  expense: '支出',
-  refund: '退款（收入）',
-  transfer: '转账 / 还款',
+  get income() { return tr("收入") },
+  get expense() { return tr("支出") },
+  get refund() { return tr("退款（收入）") },
+  get transfer() { return tr("转账 / 还款") },
 }
 
 const transactionTypeValues = new Set<TransactionType>([

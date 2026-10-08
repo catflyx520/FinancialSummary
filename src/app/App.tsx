@@ -1,4 +1,7 @@
-import { useEffect, useState } from 'react'
+import { tr } from '../lib/i18n'
+import { useEffect, useState, useSyncExternalStore } from 'react'
+import { getLanguage, subscribeLanguage } from '../lib/i18n'
+import { LanguageSelect } from '../components/LanguageSelect'
 import type { ReactNode } from 'react'
 import { isFirebaseConfigured } from '../lib/firebase'
 import { useAuth } from '../features/auth/useAuth'
@@ -57,37 +60,39 @@ const navigation: {
 }[] = [
   {
     id: 'overview',
-    label: '财务总览',
+    get label() { return tr("财务总览") },
     icon: 'overview',
-    description: '每一笔收支，都让生活更清晰。',
+    get description() { return tr("每一笔收支，都让生活更清晰。") },
   },
   {
     id: 'transactions',
-    label: '收支明细',
+    get label() { return tr("收支明细") },
     icon: 'transactions',
-    description: '记录收入与消费，看清每一笔钱的去向。',
+    get description() { return tr("记录收入与消费，看清每一笔钱的去向。") },
   },
   {
     id: 'accounts',
-    label: '我的账户',
+    get label() { return tr("我的账户") },
     icon: 'accounts',
-    description: '把资产与负债，放在一张清晰的账本里。',
+    get description() { return tr("把资产与负债，放在一张清晰的账本里。") },
   },
   {
     id: 'recurring',
-    label: '固定收支',
+    get label() { return tr("固定收支") },
     icon: 'recurring',
-    description: '为每个月的生活，提前做好安排。',
+    get description() { return tr("为每个月的生活，提前做好安排。") },
   },
   {
     id: 'settings',
-    label: '设置与连接',
+    get label() { return tr("设置与连接") },
     icon: 'settings',
-    description: '管理你的个人财务工作区。',
+    get description() { return tr("管理你的个人财务工作区。") },
   },
 ]
 
 function App() {
+  const language = useSyncExternalStore(subscribeLanguage, getLanguage)
+  useEffect(() => { document.documentElement.lang = language === 'en' ? 'en' : 'zh-CN' }, [language])
   const auth = useAuth()
   const [choice, setChoice] = useState<'auto' | 'local' | 'demo'>(
     isFirebaseConfigured ? 'auto' : 'local',
@@ -106,21 +111,14 @@ function App() {
   if (choice === 'auto' && (auth.loading || !auth.user))
     return (
       <div className="login-page">
+        <div className="login-language"><LanguageSelect /></div>
         <div className="login-brand">
           <Icon name="leaf" size={27} /> Financial Summary
         </div>
         <main className="login-card">
           <p className="eyebrow">A CLEARER PICTURE</p>
-          <h1>
-            你的财务，
-            <br />
-            一目了然。
-          </h1>
-          <p>
-            收入、消费、资产与每月的固定收支。
-            <br />
-            在一个属于你的空间，慢慢理清。
-          </p>
+          <h1>{tr("你的财务，")}<br />{tr("一目了然。")}</h1>
+          <p>{tr("收入、消费、资产与每月的固定收支。")}<br />{tr("在一个属于你的空间，慢慢理清。")}</p>
           {auth.error && (
             <div className="error-banner" role="alert">
               {auth.error}
@@ -132,21 +130,17 @@ function App() {
             onClick={signIn}
           >
             {auth.loading
-              ? '正在连接…'
+              ? tr("正在连接…")
               : auth.signingIn
-                ? '等待 Google 登录完成…'
-                : '使用 Google 登录'}
+                ? tr("等待 Google 登录完成…")
+                : tr("使用 Google 登录")}
             <Icon name="arrow" size={18} />
           </button>
           <div className="login-options">
-            <button className="text-button" onClick={() => setChoice('local')}>
-              先使用本地账本
-            </button>
-            <button className="text-button" onClick={openDemo}>
-              查看演示
-            </button>
+            <button className="text-button" onClick={() => setChoice('local')}>{tr("先使用本地账本")}</button>
+            <button className="text-button" onClick={openDemo}>{tr("查看演示")}</button>
           </div>
-          <small>使用 Firebase 登录，数据由你的个人访问规则保护。</small>
+          <small>{tr("使用 Firebase 登录，数据由你的个人访问规则保护。")}</small>
         </main>
         <div className="login-decoration" aria-hidden="true">
           <div />
@@ -231,7 +225,7 @@ function Workspace({
               try {
                 if ((await repository.postDueRecurring(today)) === 0) break
               } catch (error) {
-                errors.add(error instanceof Error ? error.message : '固定收支自动记账失败。')
+                errors.add(error instanceof Error ? error.message : tr("固定收支自动记账失败。"))
                 if (!(error instanceof RecurringPostingFailure) || error.processed === 0) break
               }
             }
@@ -265,7 +259,7 @@ function Workspace({
             error:
               error instanceof Error
                 ? error.message
-                : '无法读取工作区，请重试。',
+                : tr("无法读取工作区，请重试。"),
             repository: null,
           }))
       }
@@ -297,26 +291,26 @@ function Workspace({
       setModal(null)
       setToast(
         mode === 'cloud'
-          ? '已保存到 Firebase'
+          ? tr("已保存到 Firebase")
           : mode === 'demo'
-            ? '演示已更新，不会保存到你的账本'
-            : '已保存到本地账本',
+            ? tr("演示已更新，不会保存到你的账本")
+            : tr("已保存到本地账本"),
       )
     } finally {
       setBusy(false)
     }
   }
   const requireRepository = () => {
-    if (!repository) throw new Error('工作区尚未连接，暂时无法保存。')
+    if (!repository) throw new Error(tr("工作区尚未连接，暂时无法保存。"))
     return repository
   }
   const deleteTransaction = (t: Transaction) =>
     openModal({
       kind: 'delete',
-      title: `删除「${t.merchant}」`,
+      title: tr("删除「{0}」", [t.merchant]),
       description: t.source === 'recurring' && t.type === 'expense'
-        ? '删除后，这笔记录会从统计中移除，但已扣账的账户余额不会恢复；如需撤销扣账，请同时手动调整账户余额。'
-        : '删除后，这笔记录将从对应月份的统计中移除。',
+        ? tr("删除后，这笔记录会从统计中移除，但已扣账的账户余额不会恢复；如需撤销扣账，请同时手动调整账户余额。")
+        : tr("删除后，这笔记录将从对应月份的统计中移除。"),
       remove: () => requireRepository().deleteTransaction(t.id),
     })
   const deleteAccount = (a: Account) => {
@@ -325,10 +319,10 @@ function Workspace({
       data.recurringPayments.some((p) => p.accountId === a.id)
     openModal({
       kind: 'delete',
-      title: `删除「${a.name}」`,
+      title: tr("删除「{0}」", [a.name]),
       description: linked
-        ? '这个账户仍被收支记录或固定收支引用。请先编辑相关记录，改为其他账户或「未指定账户」。'
-        : '删除后，这个账户的余额将从资产汇总中移除。',
+        ? tr("这个账户仍被收支记录或固定收支引用。请先编辑相关记录，改为其他账户或「未指定账户」。")
+        : tr("删除后，这个账户的余额将从资产汇总中移除。"),
       blocked: linked,
       remove: () => requireRepository().deleteAccount(a.id),
     })
@@ -343,25 +337,23 @@ function Workspace({
     content = (
       <div className="panel empty-state" role="status">
         <span className="loading-ring" />
-        <p>正在读取你的账本…</p>
+        <p>{tr("正在读取你的账本…")}</p>
       </div>
     )
   else if (state.error)
     content = (
       <div className="panel empty-state">
         <Icon name="settings" size={32} />
-        <h2>账本暂时无法读取</h2>
+        <h2>{tr("账本暂时无法读取")}</h2>
         <p>
           {mode === 'cloud'
-            ? '请检查网络、Firestore 规则和 ownerUid 设置。'
-            : '请保留当前浏览器数据，修复后再继续。'}
+            ? tr("请检查网络、Firestore 规则和 ownerUid 设置。")
+            : tr("请保留当前浏览器数据，修复后再继续。")}
         </p>
         <button
           className="button button-quiet"
           onClick={() => setPage('settings')}
-        >
-          查看连接设置
-        </button>
+        >{tr("查看连接设置")}</button>
       </div>
     )
   else if (page === 'overview')
@@ -399,8 +391,8 @@ function Workspace({
         onDelete={(p) =>
           openModal({
             kind: 'delete',
-            title: `删除「${p.name}」`,
-            description: '删除计划不会删除已经生成的收支记录。',
+            title: tr("删除「{0}」", [p.name]),
+            get description() { return tr("删除计划不会删除已经生成的收支记录。") },
             remove: () => requireRepository().deleteRecurringPayment(p.id),
           })
         }
@@ -425,7 +417,7 @@ function Workspace({
           </span>
         </a>
         <div className="workspace-label">PERSONAL WORKSPACE</div>
-        <nav aria-label="主要导航">
+        <nav aria-label={tr("主要导航")}>
           {navigation.map((n) => (
             <button
               key={n.id}
@@ -444,21 +436,17 @@ function Workspace({
             <span className="note-illustration">
               <Icon name="leaf" size={28} />
             </span>
-            <strong>一点记录，多一点从容。</strong>
-            <p>
-              从今天的一笔开始，
-              <br />
-              看清生活的每个月。
-            </p>
+            <strong>{tr("一点记录，多一点从容。")}</strong>
+            <p>{tr("从今天的一笔开始，")}<br />{tr("看清生活的每个月。")}</p>
           </div>
           <div className="workspace-profile">
             <span className="profile-avatar">
-              {email?.slice(0, 1).toUpperCase() ?? '我'}
+              {email?.slice(0, 1).toUpperCase() ?? tr("我")}
             </span>
             <span>
-              <strong>{email ?? '我的财务空间'}</strong>
+              <strong>{email ?? tr("我的财务空间")}</strong>
               <small>
-                {mode === 'cloud' ? '个人云端账本' : 'Personal finance'}
+                {mode === 'cloud' ? tr("个人云端账本") : 'Personal finance'}
               </small>
             </span>
           </div>
@@ -466,31 +454,26 @@ function Workspace({
       </aside>
       <div className="main-wrapper">
         <header className="topbar">
-          <span className="breadcrumb">
-            我的空间 <span>/</span> {currentPage.label}
+          <LanguageSelect />
+          <span className="breadcrumb">{tr("我的空间 ")}<span>/</span> {currentPage.label}
           </span>
           <div className="topbar-actions">
             <span className={`mode-indicator ${mode}`}>
               <i />
               {mode === 'cloud'
-                ? 'Firebase 云端'
+                ? tr("Firebase 云端")
                 : mode === 'demo'
-                  ? '演示模式'
-                  : '本地模式'}
+                  ? tr("演示模式")
+                  : tr("本地模式")}
             </span>
             {mode === 'demo' ? (
-              <button className="text-button" onClick={onReturn}>
-                返回我的数据 <Icon name="arrow" size={15} />
+              <button className="text-button" onClick={onReturn}>{tr("返回我的数据 ")}<Icon name="arrow" size={15} />
               </button>
             ) : (
-              <button className="text-button" onClick={onDemo}>
-                查看演示
-              </button>
+              <button className="text-button" onClick={onDemo}>{tr("查看演示")}</button>
             )}
             {mode === 'cloud' && (
-              <button className="text-button" onClick={onSignOut}>
-                退出登录
-              </button>
+              <button className="text-button" onClick={onSignOut}>{tr("退出登录")}</button>
             )}
           </div>
         </header>
@@ -499,17 +482,16 @@ function Workspace({
             <Icon name={mode === 'cloud' ? 'check' : 'leaf'} size={17} />
             <span>
               {mode === 'cloud'
-                ? '你的个人云端账本 · 仅显示当前登录账户的数据'
+                ? tr("你的个人云端账本 · 仅显示当前登录账户的数据")
                 : mode === 'demo'
-                  ? '以下为虚构示例。可以自由试用，修改只保留在本次演示中。'
-                  : '数据保存在当前浏览器。连接 Firebase 后，即可使用独立的云端账本。'}
+                  ? tr("以下为虚构示例。可以自由试用，修改只保留在本次演示中。")
+                  : tr("数据保存在当前浏览器。连接 Firebase 后，即可使用独立的云端账本。")}
             </span>
             {mode === 'local' && (
               <button
                 className="text-button"
                 onClick={() => setPage('settings')}
-              >
-                连接设置 <Icon name="arrow" size={15} />
+              >{tr("连接设置 ")}<Icon name="arrow" size={15} />
               </button>
             )}
           </div>
@@ -534,7 +516,7 @@ function Workspace({
                   <Icon name="recurring" size={17} />
                   <input
                     type="month"
-                    aria-label="查看月份"
+                    aria-label={tr("查看月份")}
                     min="1900-01"
                     max="9999-12"
                     value={month}
@@ -565,10 +547,10 @@ function Workspace({
                 >
                   <Icon name="plus" size={18} />
                   {page === 'accounts'
-                    ? '添加账户'
+                    ? tr("添加账户")
                     : page === 'recurring'
-                      ? '添加计划'
-                      : '新增记录'}
+                      ? tr("添加计划")
+                      : tr("新增记录")}
                 </button>
               )}
             </div>
@@ -576,7 +558,7 @@ function Workspace({
           {content}
           <footer className="page-footer">
             <span>Financial Summary</span>
-            <span>一份清晰的账本，一种从容的生活。</span>
+            <span>{tr("一份清晰的账本，一种从容的生活。")}</span>
           </footer>
         </main>
       </div>
@@ -592,8 +574,8 @@ function Workspace({
             modal.kind === 'delete'
               ? modal.title
               : modal.kind === 'import'
-                ? '导入 Chase 信用卡账单'
-              : `${modal.value ? '编辑' : '新增'}${modal.kind === 'transaction' ? '收支记录' : modal.kind === 'account' ? '账户' : '固定收支'}`
+                ? tr("导入 Chase 信用卡账单")
+              : tr("{0}{1}", [modal.value ? tr("编辑") : tr("新增"), modal.kind === 'transaction' ? tr("收支记录") : modal.kind === 'account' ? tr("账户") : tr("固定收支")])
           }
           busy={busy}
           onClose={closeModal}
@@ -602,7 +584,7 @@ function Workspace({
           {modal.kind === 'import' && <StatementImport accounts={data.accounts} transactions={data.transactions}
             onImport={records => requireRepository().importTransactions(records)}
             onCancel={closeModal} onBusyChange={setBusy}
-            onCreateAccount={() => { setModal(null); setPage('accounts'); setToast('请添加账户，并把类型选择为「信用卡」。') }} />}
+            onCreateAccount={() => { setModal(null); setPage('accounts'); setToast(tr("请添加账户，并把类型选择为「信用卡」。")) }} />}
           {modal.kind === 'transaction' && (
             <TransactionForm
               initial={modal.value}
@@ -649,7 +631,7 @@ function Workspace({
                   disabled={busy}
                   onClick={closeModal}
                 >
-                  {modal.blocked ? '知道了' : '取消'}
+                  {modal.blocked ? tr("知道了") : tr("取消")}
                 </button>
                 {!modal.blocked && (
                   <button
@@ -660,12 +642,12 @@ function Workspace({
                         setDeleteError(
                           error instanceof Error
                             ? error.message
-                            : '删除失败，请重试。',
+                            : tr("删除失败，请重试。"),
                         ),
                       )
                     }}
                   >
-                    {busy ? '正在删除…' : '确认删除'}
+                    {busy ? tr("正在删除…") : tr("确认删除")}
                   </button>
                 )}
               </div>

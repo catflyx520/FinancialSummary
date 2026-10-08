@@ -2249,3 +2249,9 @@ h2 {
     animation: none !important;
   }
 }
+.language-select { display:inline-flex; align-items:center; gap:6px; flex-shrink:0; border:1px solid #d9dfd7; border-radius:8px; padding:6px 9px; background:#fff; color:#526f5b; }
+.language-select select { border:0; background:transparent; font:inherit; color:inherit; cursor:pointer; max-width:105px; }
+.login-language { position:absolute; top:20px; right:20px; }
+.topbar { flex-wrap:wrap; gap:10px; }
+html[lang="en"] .sidebar { min-width:230px; }
+@media(max-width:700px) { .topbar-actions { flex-wrap:wrap; gap:8px; } }
