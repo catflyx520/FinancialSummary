@@ -4,12 +4,14 @@
 
 **技术栈：** React · TypeScript · Vite · Firebase
 
+![Financial Summary — dashboard overview / 财务总览](docs/images/dashboard-screenshot.png)
+
 ## 功能
 
 - 月度收支、分类统计、资产与负债概览。
 - 交易管理、CSV 导出和固定收支计划。
 - Chase 文字型信用卡 PDF 导入与核对。
-- 中文界面，适配桌面和手机；可选 Google 登录与云端保存。
+- 中英文界面，适配桌面和手机；可选 Google 登录与云端保存。
 
 ## 快速开始
 
