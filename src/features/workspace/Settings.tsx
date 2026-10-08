@@ -80,6 +80,13 @@ export function Settings({
           <button className="button button-primary" onClick={onSignIn}>{tr("连接 Google 账户 ")}<Icon name="arrow" size={16} />
           </button>
         )}
+        {!isFirebaseConfigured && (
+          <div className="info-note">
+            <strong>{tr('尚未连接云端')}</strong>
+            <p>{tr('请先在项目根目录的 .env.local 中填写 Firebase Web 配置并重启应用。完成后，这里会出现 Google 登录按钮。本地账本现在就可以使用。')}</p>
+            <a className="text-button" href="https://github.com/catflyx520/FinancialSummary/blob/main/FIREBASE_SETUP.md" target="_blank" rel="noreferrer">{tr('查看完整连接指南')}</a>
+          </div>
+        )}
       </section>
       <section className="panel settings-panel">
         <p className="eyebrow">GET CONNECTED</p>
@@ -89,14 +96,14 @@ export function Settings({
             <span>01</span>
             <div>
               <strong>{tr("注册一个 Web 应用")}</strong>
-              <p>{tr("Firebase 控制台 → 项目设置 → 你的应用，复制 firebaseConfig 到项目的 .env.local。")}</p>
+              <p>{tr('Firebase 控制台 → 项目设置 → 你的应用。将 .env.example 复制为 .env.local，填写 apiKey、authDomain、projectId 和 appId 对应的四个配置项，然后重启开发服务。')}</p>
             </div>
           </li>
           <li>
             <span>02</span>
             <div>
               <strong>{tr("启用 Google 登录和 Firestore")}</strong>
-              <p>{tr("在 Authentication 添加 Google 提供商；本地调试时把 localhost 加入授权域名。")}</p>
+              <p>{tr('在 Authentication 启用 Google；在授权域名中添加当前访问的主机名（localhost 或 127.0.0.1）。创建 Firestore 数据库，然后返回此页面登录 Google。')}</p>
             </div>
           </li>
           <li>
@@ -125,6 +132,7 @@ export function Settings({
           <span className="small-tag">{tr("Chase 信用卡 PDF")}</span>
         </div>
         <p className="subtle">{tr("读取 Chase 文字型月结账单，先预览、修改分类并选择信用卡账户，再确认导入。 退款计入收入，还款记为转账；重复账单会跳过已有记录。")}</p>
+        <p className="info-note">{tr('目前不支持直接连接银行或自动同步交易，无需提供网银密码。请从银行下载账单 PDF 后导入，或手动添加交易。')}</p>
         <p className="field-note">{tr("原 PDF 在浏览器本地解析；仅确认后的交易保存到当前账本。扫描图片、加密 PDF 与其他银行暂不支持。")}</p>
         <button className="button button-primary" onClick={onImport} disabled={!canImport}>{tr("导入 Chase PDF")}</button>
       </section>

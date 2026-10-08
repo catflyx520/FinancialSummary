@@ -363,5 +363,11 @@
   "{0}：扣账后的账户金额超出允许范围。": "{0}: the resulting account balance is outside the allowed range.",
   "账户余额已变更，请关闭表单并重新打开后修改。": "Account balance has changed. Close and reopen the form before editing.",
   "最近六个月，截至 {0}": "Last six months through {0}",
-  "{0}{1}": "{0} {1}"
+  "{0}{1}": "{0} {1}",
+  "尚未连接云端": "Cloud storage is not connected",
+  "请先在项目根目录的 .env.local 中填写 Firebase Web 配置并重启应用。完成后，这里会出现 Google 登录按钮。本地账本现在就可以使用。": "Add your Firebase Web configuration to .env.local in the project root and restart the app. A Google sign-in button will then appear here. You can use the local ledger right away.",
+  "查看完整连接指南": "View the connection guide",
+  "Firebase 控制台 → 项目设置 → 你的应用。将 .env.example 复制为 .env.local，填写 apiKey、authDomain、projectId 和 appId 对应的四个配置项，然后重启开发服务。": "In Firebase Console, open Project settings → Your apps. Copy .env.example to .env.local, fill in the four settings for apiKey, authDomain, projectId, and appId, then restart the development server.",
+  "在 Authentication 启用 Google；在授权域名中添加当前访问的主机名（localhost 或 127.0.0.1）。创建 Firestore 数据库，然后返回此页面登录 Google。": "Enable Google in Authentication and add your current hostname (localhost or 127.0.0.1) to Authorized domains. Create a Firestore database, then return here to sign in with Google.",
+  "目前不支持直接连接银行或自动同步交易，无需提供网银密码。请从银行下载账单 PDF 后导入，或手动添加交易。": "Direct bank connections and automatic transaction syncing are not supported. No bank password is needed. Download a statement PDF from your bank and import it, or add transactions manually."
 }
