@@ -1,6 +1,14 @@
 # FinancialSummary public demo on AWS
 
-Status: deployment prepared; the CloudFormation stack must be created before publishing. No live demo URL is claimed yet.
+Status: deployed and verified on October 18, 2026 (America/Los_Angeles).
+
+**[Live demo](https://dylyqx4np8ne0.cloudfront.net)** · [Successful publishing workflow](https://github.com/catflyx520/FinancialSummary/actions/runs/39201052385)
+
+The user created `FinancialSummaryHosting` in the AWS console. GitHub Actions published application commit `7c9ba62cdeb2d2cf58c8ee3c2c4728db4ad03af1` to distribution `E2Y5P5O9RUKH49` and bucket `financialsummaryhosting-sitebucket-jrikfmty7nxa` using temporary OIDC credentials.
+
+Verified: 144 tests, lint, demo build, CloudFormation lint, HTML/CSS/JavaScript and PDF-worker MIME types, HTTPS redirect, custom 404, security headers, and anonymous direct-S3 denial. Browser checks covered all five workspace pages, adding a fictional transaction, resetting the demo, and switching languages. PDF import with a live uploaded statement and mobile-device interaction were not exercised in this deployment check.
+
+The instructions below describe how to recreate the stack or publish an update. The existing stack does not need to be created again.
 
 This static React application needs no server, database, bank connection, or Firebase for the public demo. It uses fictional data in memory. Refreshing or choosing **Restart demo** resets edits. A saved language preference is allowed; the demo never loads the local personal ledger.
 

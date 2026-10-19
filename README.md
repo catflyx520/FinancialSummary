@@ -6,7 +6,7 @@ A personal finance app with a local ledger, fictional demo data, and an optional
 
 ## Public demo deployment
 
-The AWS demo uses fictional data with Firebase disabled. Infrastructure and publishing are prepared; the live URL will be added after deployment is verified. See the [AWS deployment guide](docs/AWS-DEPLOYMENT.md) for the console template and GitHub publishing steps.
+**[Open the live demo](https://dylyqx4np8ne0.cloudfront.net)** — hosted on AWS CloudFront with a private S3 origin. The demo uses fictional data with Firebase disabled. Changes reset when you reload or choose **Restart demo**. See the [AWS deployment guide](docs/AWS-DEPLOYMENT.md) for the console template and GitHub publishing steps.
 
 ```sh
 npm ci

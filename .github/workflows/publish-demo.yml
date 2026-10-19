@@ -68,6 +68,5 @@ jobs:
           role-to-assume: ${{ vars.DEMO_PUBLISH_ROLE_ARN }}
           role-session-name: FinancialSummaryDemo
           aws-region: us-east-2
-          allowed-account-ids: '397303793146'
           role-duration-seconds: 900
       - run: python scripts/publish-demo.py
