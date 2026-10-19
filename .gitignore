@@ -29,6 +29,7 @@ dist/
 
 # Logs and editor files
 *.log
+__pycache__/
 .DS_Store
 .idea/
 .vscode/*

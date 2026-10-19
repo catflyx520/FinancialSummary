@@ -1,6 +1,7 @@
 import type { FirebaseApp } from 'firebase/app'
 import type { Auth } from 'firebase/auth'
 import type { Firestore } from 'firebase/firestore'
+import { isPublicDemo } from './runtime'
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -18,7 +19,7 @@ const requiredConfig = [
   firebaseConfig.appId,
 ]
 
-export const isFirebaseConfigured = requiredConfig.every(
+export const isFirebaseConfigured = !isPublicDemo && requiredConfig.every(
   (value) => typeof value === 'string' && value.trim().length > 0,
 )
 

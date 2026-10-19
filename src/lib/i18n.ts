@@ -1,13 +1,17 @@
 import english from './translations.en.json'
+import { isPublicDemo } from './runtime'
 
 export type Language = 'zh' | 'en'
 const STORAGE_KEY = 'financial-summary:language'
 const listeners = new Set<() => void>()
 export function getLanguage(): Language {
-  try { return localStorage.getItem(STORAGE_KEY) === 'en' ? 'en' : 'zh' }
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    return saved === 'en' || saved === 'zh' ? saved : isPublicDemo ? 'en' : 'zh'
+  }
   catch { return fallbackLanguage }
 }
-let fallbackLanguage: Language = 'zh'
+let fallbackLanguage: Language = isPublicDemo ? 'en' : 'zh'
 export function setLanguage(language: Language) {
   fallbackLanguage = language
   try { localStorage.setItem(STORAGE_KEY, language) } catch { /* Private browsing. */ }

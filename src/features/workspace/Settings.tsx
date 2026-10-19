@@ -2,6 +2,7 @@ import { tr } from '../../lib/i18n'
 import { useState } from 'react'
 import { Icon } from '../../components/Icon'
 import { isFirebaseConfigured } from '../../lib/firebase'
+import { isPublicDemo } from '../../lib/runtime'
 
 export function Settings({
   mode,
@@ -39,10 +40,11 @@ export function Settings({
           <span>{tr("计价货币")}</span>
           <strong>{tr("USD 美元")}</strong>
         </div>
-        <div className="setting-line">
+        {!isPublicDemo && <div className="setting-line">
           <span>{tr("Firebase 配置")}</span>
           <strong>{isFirebaseConfigured ? tr("已填写") : tr("尚未填写")}</strong>
-        </div>
+        </div>}
+        {isPublicDemo && <p className="info-note">{tr('本演示仅使用虚构数据；修改保留在当前页面，重新开始后重置。')}</p>}
         {email && (
           <div className="setting-line">
             <span>{tr("登录账户")}</span>
@@ -80,7 +82,7 @@ export function Settings({
           <button className="button button-primary" onClick={onSignIn}>{tr("连接 Google 账户 ")}<Icon name="arrow" size={16} />
           </button>
         )}
-        {!isFirebaseConfigured && (
+        {!isPublicDemo && !isFirebaseConfigured && (
           <div className="info-note">
             <strong>{tr('尚未连接云端')}</strong>
             <p>{tr('请先在项目根目录的 .env.local 中填写 Firebase Web 配置并重启应用。完成后，这里会出现 Google 登录按钮。本地账本现在就可以使用。')}</p>
@@ -88,7 +90,7 @@ export function Settings({
           </div>
         )}
       </section>
-      <section className="panel settings-panel">
+      {!isPublicDemo && <section className="panel settings-panel">
         <p className="eyebrow">GET CONNECTED</p>
         <h2>{tr("接入你的 Firebase")}</h2>
         <ol className="setup-steps">
@@ -122,7 +124,7 @@ export function Settings({
           rel="noreferrer"
         >{tr("打开 Firebase 控制台 ")}<Icon name="arrow" size={16} />
         </a>
-      </section>
+      </section>}
       <section className="panel settings-panel settings-wide">
         <div className="panel-heading">
           <div>

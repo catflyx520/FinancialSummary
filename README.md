@@ -4,6 +4,16 @@ A personal finance app with a local ledger, fictional demo data, and an optional
 
 **Stack:** React · TypeScript · Vite · Firebase
 
+## Public demo deployment
+
+The AWS demo uses fictional data with Firebase disabled. Infrastructure and publishing are prepared; the live URL will be added after deployment is verified. See the [AWS deployment guide](docs/AWS-DEPLOYMENT.md) for the console template and GitHub publishing steps.
+
+```sh
+npm ci
+npm run build:demo
+npm run preview
+```
+
 ![Financial Summary dashboard overview](docs/images/dashboard-screenshot.png)
 
 ## Features

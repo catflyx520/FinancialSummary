@@ -4,6 +4,7 @@ import { getLanguage, subscribeLanguage } from '../lib/i18n'
 import { LanguageSelect } from '../components/LanguageSelect'
 import type { ReactNode } from 'react'
 import { isFirebaseConfigured } from '../lib/firebase'
+import { isPublicDemo } from '../lib/runtime'
 import { useAuth } from '../features/auth/useAuth'
 import {
   createFirestoreRepository,
@@ -95,8 +96,9 @@ function App() {
   useEffect(() => { document.documentElement.lang = language === 'en' ? 'en' : 'zh-CN' }, [language])
   const auth = useAuth()
   const [choice, setChoice] = useState<'auto' | 'local' | 'demo'>(
-    isFirebaseConfigured ? 'auto' : 'local',
+    isPublicDemo ? 'demo' : isFirebaseConfigured ? 'auto' : 'local',
   )
+  const [demoVersion, setDemoVersion] = useState(0)
   const [returnChoice, setReturnChoice] = useState<'auto' | 'local'>('local')
   const openDemo = () => {
     setReturnChoice(choice === 'auto' ? 'auto' : 'local')
@@ -151,13 +153,13 @@ function App() {
     )
   return (
     <Workspace
-      key={`${mode}:${mode === 'cloud' ? auth.user?.uid : ''}`}
+      key={`${mode}:${mode === 'cloud' ? auth.user?.uid : ''}:${demoVersion}`}
       mode={mode}
       uid={mode === 'cloud' ? auth.user?.uid : undefined}
       email={mode === 'cloud' ? auth.user?.email : undefined}
       authError={auth.error}
       onDemo={openDemo}
-      onReturn={() => setChoice(returnChoice)}
+      onReturn={() => isPublicDemo ? setDemoVersion(version => version + 1) : setChoice(returnChoice)}
       onSignIn={signIn}
       onSignOut={() => {
         void auth.signOut()
@@ -467,7 +469,7 @@ function Workspace({
                   : tr("本地模式")}
             </span>
             {mode === 'demo' ? (
-              <button className="text-button" onClick={onReturn}>{tr("返回我的数据 ")}<Icon name="arrow" size={15} />
+              <button className="text-button" onClick={onReturn}>{tr(isPublicDemo ? "重新开始演示" : "返回我的数据 ")}<Icon name="arrow" size={15} />
               </button>
             ) : (
               <button className="text-button" onClick={onDemo}>{tr("查看演示")}</button>
