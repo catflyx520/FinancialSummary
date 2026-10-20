@@ -7,6 +7,7 @@ import subprocess
 import time
 import urllib.error
 import urllib.request
+from urllib.parse import urljoin
 
 
 def aws(*args):
@@ -47,8 +48,8 @@ for attempt in range(12):
         with urllib.request.urlopen(site_url + '/', timeout=30) as response:
             check(response.status == 200 and 'text/html' in response.headers.get('Content-Type', ''), 'Invalid index response')
             html = response.read().decode('utf-8')
-        for asset in re.findall(r'(?:src|href)="(/assets/[^\"]+)"', html):
-            with urllib.request.urlopen(site_url + asset, timeout=30) as response:
+        for asset in re.findall(r'(?:src|href)="((?:\./|/)assets/[^\"]+)"', html):
+            with urllib.request.urlopen(urljoin(site_url + '/', asset), timeout=30) as response:
                 expected = 'javascript' if asset.endswith('.js') else 'text/css'
                 check(response.status == 200 and expected in response.headers.get('Content-Type', ''), 'Wrong asset content type')
         worker = next(Path('dist/assets').glob('pdf.worker*.mjs'))

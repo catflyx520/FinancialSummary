@@ -8,7 +8,8 @@ const definitions = { 'import.meta.env.VITE_PUBLIC_DEMO': JSON.stringify('true')
 for (const key of ['API_KEY', 'AUTH_DOMAIN', 'PROJECT_ID', 'STORAGE_BUCKET', 'MESSAGING_SENDER_ID', 'APP_ID']) {
   definitions[`import.meta.env.VITE_FIREBASE_${key}`] = JSON.stringify('')
 }
-await build({ mode: 'demo', define: definitions })
+// Relative assets let the same demo run at / and /financial-summary/.
+await build({ mode: 'demo', base: './', define: definitions })
 cpSync('deployment/404.html', 'dist/404.html')
 const commit = process.env.GITHUB_SHA || spawnSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).stdout?.trim() || 'local'
 writeFileSync('dist/release.json', JSON.stringify({ app: 'FinancialSummary', mode: 'public-demo', cloudEnabled: false, commit, builtAt: new Date().toISOString() }, null, 2) + '\n')

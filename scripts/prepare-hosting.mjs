@@ -59,12 +59,21 @@ const resources = {
   } },
 }
 const template = { AWSTemplateFormatVersion: '2010-09-09', Description: 'FinancialSummary public demo: private S3, CloudFront OAC, GitHub OIDC publisher. Reuses the existing account OIDC provider.',
+  Parameters: {
+    PortfolioDistributionId: { Type: 'String', Default: '', AllowedPattern: '^$|^[A-Z0-9]+$', Description: 'Optional existing portfolio CloudFront distribution ID for /financial-summary/. Leave empty to disable.' },
+  },
+  Conditions: { HasPortfolioDistribution: { 'Fn::Not': [{ 'Fn::Equals': [ref('PortfolioDistributionId'), ''] }] } },
   Resources: resources,
   Outputs: {
     SiteBucketName: { Value: ref('SiteBucket') }, DistributionId: { Value: ref('Distribution') },
     SiteUrl: { Value: sub('https://${Distribution.DomainName}') }, PublisherRoleArn: { Value: attr('PublisherRole', 'Arn') },
   },
 }
+resources.BucketPolicy.Properties.PolicyDocument.Statement.push({ 'Fn::If': ['HasPortfolioDistribution', {
+  Sid: 'AllowPortfolioCloudFrontOnly', Effect: 'Allow', Principal: { Service: 'cloudfront.amazonaws.com' },
+  Action: 's3:GetObject', Resource: sub('${SiteBucket.Arn}/*'),
+  Condition: { StringEquals: { 'AWS:SourceArn': sub('arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${PortfolioDistributionId}') } },
+}, ref('AWS::NoValue')] })
 // Guard against accidental public buckets, broad publishers, or changes to other projects.
 assert.equal(Object.keys(resources).length, 7)
 assert.equal(resources.SiteBucket.Properties.PublicAccessBlockConfiguration.BlockPublicPolicy, true)

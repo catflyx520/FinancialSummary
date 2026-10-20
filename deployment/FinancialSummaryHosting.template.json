@@ -1,6 +1,28 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "FinancialSummary public demo: private S3, CloudFront OAC, GitHub OIDC publisher. Reuses the existing account OIDC provider.",
+  "Parameters": {
+    "PortfolioDistributionId": {
+      "Type": "String",
+      "Default": "",
+      "AllowedPattern": "^$|^[A-Z0-9]+$",
+      "Description": "Optional existing portfolio CloudFront distribution ID for /financial-summary/. Leave empty to disable."
+    }
+  },
+  "Conditions": {
+    "HasPortfolioDistribution": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "PortfolioDistributionId"
+            },
+            ""
+          ]
+        }
+      ]
+    }
+  },
   "Resources": {
     "SiteBucket": {
       "Type": "AWS::S3::Bucket",
@@ -246,6 +268,32 @@
                   }
                 }
               }
+            },
+            {
+              "Fn::If": [
+                "HasPortfolioDistribution",
+                {
+                  "Sid": "AllowPortfolioCloudFrontOnly",
+                  "Effect": "Allow",
+                  "Principal": {
+                    "Service": "cloudfront.amazonaws.com"
+                  },
+                  "Action": "s3:GetObject",
+                  "Resource": {
+                    "Fn::Sub": "${SiteBucket.Arn}/*"
+                  },
+                  "Condition": {
+                    "StringEquals": {
+                      "AWS:SourceArn": {
+                        "Fn::Sub": "arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${PortfolioDistributionId}"
+                      }
+                    }
+                  }
+                },
+                {
+                  "Ref": "AWS::NoValue"
+                }
+              ]
             }
           ]
         }
